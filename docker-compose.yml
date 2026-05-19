@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aigc-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ZHIPU_API_KEY=9bbac3df405e4f31bbab3bb2be5427d5.NzKAbUMTNxwwUp0H
+      - TENCENT_API_KEY=sk-ZGQgA4htjkfXhHjXEQiMvuiz2fh6PvzmXEDuUPFn3nM9VBV2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - aigc-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: aigc-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - aigc-network
+    restart: unless-stopped
+
+networks:
+  aigc-network:
+    driver: bridge
